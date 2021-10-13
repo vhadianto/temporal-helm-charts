@@ -13,8 +13,8 @@ server:
           host: 172.23.0.3
           port: 5432
           database: temporal
-          user: sptemporal
-          password: change.me
+          user: _USER_
+          password: _PASSWORD_
           maxConns: 20
           maxConnLifetime: "1h"
 
@@ -26,8 +26,8 @@ server:
           host: 172.23.0.3
           port: 5432
           database: temporal_visibility
-          user: sptemporal
-          password: change.me
+          user: _USER_
+          password: _PASSWORD_
           maxConns: 20
           maxConnLifetime: "1h"
 
