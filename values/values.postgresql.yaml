@@ -1,15 +1,19 @@
 server:
+
   config:
+    tls:
+      certDir: /etc/temporal/config/certs
+
     persistence:
       default:
         driver: "sql"
 
         sql:
           driver: "postgres"
-          host: _HOST_
+          host: 172.23.0.3
           port: 5432
           database: temporal
-          user: _USERNAME_
+          user: _USER_
           password: _PASSWORD_
           maxConns: 20
           maxConnLifetime: "1h"
@@ -19,13 +23,24 @@ server:
 
         sql:
           driver: "postgres"
-          host: _HOST_
+          host: 172.23.0.3
           port: 5432
           database: temporal_visibility
-          user: _USERNAME_
+          user: _USER_
           password: _PASSWORD_
           maxConns: 20
           maxConnLifetime: "1h"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+      
+  frontend:
+    replicaCount: 1
+
+  worker:
+    replicaCount: 1
 
 cassandra:
   enabled: false

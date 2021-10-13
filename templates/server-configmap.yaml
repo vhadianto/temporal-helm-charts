@@ -103,7 +103,7 @@ data:
 
       pprof:
         port: 7936
-        
+
       metrics:
         tags:
           type: {{ $service }}
@@ -111,6 +111,65 @@ data:
           timerType: histogram
           listenAddress: "0.0.0.0:9090"
 
+      {{ if $.Values.server.config.global.tls }}
+      tls:
+        {{ if $.Values.server.config.global.tls.internode }}
+        internode:
+          # This server section configures the TLS certificate that internal temporal
+          # cluster nodes (history or matching) present to other clients within the Temporal Cluster.
+          {{ if $.Values.server.config.global.tls.internode.server }}
+          server:
+            requireClientAuth: {{ $.Values.server.config.global.tls.internode.server.requireClientAuth }}
+            certFile: {{ $.Values.server.config.global.tls.internode.server.certFile }}
+            keyFile: {{ $.Values.server.config.global.tls.internode.server.keyFile }}
+            clientCaFiles:
+              {{- range $.Values.server.config.global.tls.internode.server.clientCaFiles }}
+              - {{ . }}
+              {{- end }}
+          {{- end }}
+
+          {{ if $.Values.server.config.global.tls.internode.client }}
+          # This client section is used to configure the TLS clients within
+          # the Temporal Cluster that connect to an Internode (history or matching)
+          client:
+            disableHostVerification: {{ $.Values.server.config.global.tls.internode.client.disableHostVerification }}
+            serverName: {{ $.Values.server.config.global.tls.internode.client.serverName }}
+            rootCaFiles:
+              {{- range $.Values.server.config.global.tls.internode.client.rootCaFiles }}
+              - {{ . }}
+              {{- end }}
+          {{- end }}
+        {{- end }}
+
+        {{ if $.Values.server.config.global.tls.frontend }}
+        frontend:
+          {{ if $.Values.server.config.global.tls.frontend.server }}
+          # This server section configures the TLS certificate that the Frontend
+          # server presents to all clients (specifically the Worker role within
+          # the Temporal Cluster and all External SDKs connecting to the Cluster)
+          server:
+            requireClientAuth: {{ $.Values.server.config.global.tls.frontend.server.requireClientAuth }}
+            certFile: {{ $.Values.server.config.global.tls.frontend.server.certFile }}
+            keyFile: {{ $.Values.server.config.global.tls.frontend.server.keyFile }}
+            clientCaFiles:
+              {{- range $.Values.server.config.global.tls.frontend.server.clientCaFiles }}
+              - {{ . }}
+              {{- end }}
+          {{- end }}
+
+          {{ if $.Values.server.config.global.tls.frontend.client }}
+          # This client section is used to configure the TLS clients within
+          # the Temporal Cluster (specifically the Worker role) that connect to the Frontend service
+          client:
+            disableHostVerification: {{ $.Values.server.config.global.tls.frontend.client.disableHostVerification }}
+            serverName: {{ $.Values.server.config.global.tls.frontend.client.serverName }}
+            rootCaFiles:
+              {{- range $.Values.server.config.global.tls.frontend.client.rootCaFiles }}
+              - {{ . }}
+              {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
 
     services:
       frontend:
