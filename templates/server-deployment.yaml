@@ -81,6 +81,42 @@ spec:
           image: "{{ $.Values.server.image.repository }}:{{ $.Values.server.image.tag }}"
           imagePullPolicy: {{ $.Values.server.image.pullPolicy }}
           env:
+            - name: TEMPORAL_TLS_SERVER_CA_CERT
+              value: /etc/temporal/config/certs/ca.cert
+
+            - name: TEMPORAL_TLS_SERVER_CERT
+              value: /etc/temporal/config/certs/cluster.pem
+
+            - name: TEMPORAL_TLS_SERVER_KEY
+              value: /etc/temporal/config/certs/cluster.key
+
+            - name: TEMPORAL_TLS_REQUIRE_CLIENT_AUTH
+              value: "true"
+            
+            - name: TEMPORAL_TLS_FRONTEND_CERT
+              value: /etc/temporal/config/certs/cluster.pem
+
+            - name: TEMPORAL_TLS_FRONTEND_KEY
+              value: /etc/temporal/config/certs/cluster.key
+            
+            - name: TEMPORAL_TLS_CLIENT1_CA_CERT
+              value: /etc/temporal/config/certs/ca.cert
+
+            - name: TEMPORAL_TLS_CLIENT2_CA_CERT
+              value: /etc/temporal/config/certs/ca.cert
+
+            - name: TEMPORAL_TLS_INTERNODE_SERVER_NAME
+              value: steampipe-temporal
+
+            - name: TEMPORAL_TLS_FRONTEND_SERVER_NAME
+              value: steampipe-temporal
+            
+            - name: TEMPORAL_TLS_FRONTEND_DISABLE_HOST_VERIFICATION
+              value: "false"
+
+            - name: TEMPORAL_TLS_INTERNODE_DISABLE_HOST_VERIFICATION
+              value: "false"
+
             - name: POD_IP
               valueFrom:
                 fieldRef:
@@ -131,6 +167,9 @@ spec:
                port: rpc
           {{- end }}
           volumeMounts:
+            - name: certs
+              mountPath: /etc/temporal/config/certs
+
             - name: config
               mountPath: /etc/temporal/config/config_template.yaml
               subPath: config_template.yaml
@@ -150,6 +189,9 @@ spec:
       {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        - name: certs
+          secret:
+            secretName: temporal-certs
         - name: config
           configMap:
             name: "{{ include "temporal.componentname" (list $ $service) }}-config"
