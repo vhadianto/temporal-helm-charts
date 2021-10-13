@@ -1,6 +1,7 @@
 {{- if $.Values.server.enabled }}
 {{- range $service := (list "frontend" "history" "matching" "worker") }}
 {{- $serviceValues := index $.Values.server $service -}}
+{{- $serviceTlsValues := index $.Values.server.tls $service -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -131,6 +132,11 @@ spec:
                port: rpc
           {{- end }}
           volumeMounts:
+            {{- if $serviceTlsValues.secret }}
+            - name: certs
+              mountPath: {{ $serviceTlsValues.mountPath }}
+            {{- end}}
+
             - name: config
               mountPath: /etc/temporal/config/config_template.yaml
               subPath: config_template.yaml
@@ -150,6 +156,11 @@ spec:
       {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        {{- if $serviceTlsValues.secret }}
+        - name: certs
+          secret:
+            secretName: {{ $serviceTlsValues.secret }}
+        {{- end}}
         - name: config
           configMap:
             name: "{{ include "temporal.componentname" (list $ $service) }}-config"

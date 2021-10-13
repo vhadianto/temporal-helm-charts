@@ -44,6 +44,18 @@ spec:
           env:
             - name: TEMPORAL_CLI_ADDRESS
               value: {{ include "temporal.fullname" . }}-frontend:{{ include "temporal.frontend.grpcPort" . }}
+            {{- if $.Values.admintools.tls }}
+            - name: TEMPORAL_CLI_TLS_CA
+              value: {{ $.Values.admintools.tls.tlsCaPath }}
+            - name: TEMPORAL_CLI_TLS_CERT
+              value: {{ $.Values.admintools.tls.tlsCertPath }}
+            - name: TEMPORAL_CLI_TLS_KEY
+              value: {{ $.Values.admintools.tls.tlsKeyPath }}
+            - name: TEMPORAL_CLI_TLS_SERVER_NAME
+              value: {{ $.Values.admintools.tls.tlsServerName }}
+            - name: TEMPORAL_CLI_TLS_ENABLE_HOST_VERIFICATION
+              value: {{ $.Values.admintools.tls.tlsEnableHostVerification | quote }}
+            {{- end }}
           livenessProbe:
               exec:
                 command:
@@ -51,10 +63,22 @@ spec:
                 - /
               initialDelaySeconds: 5
               periodSeconds: 5
+          {{- if $.Values.admintools.tls }}
+          volumeMounts:
+            - name: certs
+              mountPath: {{ $.Values.admintools.tls.mountPath }}
+          {{- end }}
       {{- with $.Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if $.Values.admintools.tls }}
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{  $.Values.admintools.tls.secret }}
+      {{- end }}
+
       {{- with .Values.admintools.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

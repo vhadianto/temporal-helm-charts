@@ -37,27 +37,52 @@ spec:
       {{- end }}
     spec:
       {{ include "temporal.serviceAccount" . }}
-      volumes:
-        - name: {{ .Chart.Name }}-web-config
-          configMap:
-            name: {{ include "temporal.componentname" (list . "web") }}-config
       containers:
         - name: {{ .Chart.Name }}-web
           image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
           imagePullPolicy: {{ .Values.web.image.pullPolicy }}
           env:
+            # NOTE: Documentation for web UI environment variables found at below link.
+            # https://docs.temporal.io/references/web-ui-environment-variables
             - name: TEMPORAL_ADDRESS
               value: "{{ include "temporal.fullname" . }}-frontend.{{ .Release.Namespace }}.svc:{{ .Values.server.frontend.service.port }}"
+            {{- if $.Values.web.tls}}
+            - name: TEMPORAL_TLS_KEY
+              value: {{ $.Values.web.tls.tlsKeyPath }}
+            - name: TEMPORAL_TLS_CERT
+              value: {{ $.Values.web.tls.tlsCertPath }}
+            - name: TEMPORAL_TLS_CA
+              value: {{ $.Values.web.tls.tlsCaPath }}
+            - name: TEMPORAL_TLS_SERVER_NAME
+              value: {{ $.Values.web.tls.tlsServerName }}
+            - name: TEMPORAL_TLS_ENABLE_HOST_VERIFICATION
+              value: {{ $.Values.web.tls.tlsEnableHostVerification | quote }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080
               protocol: TCP
+          {{- if $.Values.web.tls}}
+          volumeMounts:
+            - name: certs
+              mountPath: {{ $.Values.web.tls.mountPath }}
+          {{- end }}
           resources:
             {{- toYaml .Values.web.resources | nindent 12 }}
       {{- with .Values.web.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-web-config
+          configMap:
+            name: {{ include "temporal.componentname" (list . "web") }}-config
+      {{- if $.Values.web.tls}}
+        - name: certs
+          secret:
+            secretName: {{ $.Values.web.tls.secret }}
+      {{- end }}
+
     {{- with .Values.web.affinity }}
       affinity:
       {{- toYaml . | nindent 8 }}
