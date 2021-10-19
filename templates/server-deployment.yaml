@@ -1,6 +1,7 @@
 {{- if $.Values.server.enabled }}
 {{- range $service := (list "frontend" "history" "matching" "worker") }}
 {{- $serviceValues := index $.Values.server $service -}}
+{{- $serviceTlsValues := index $.Values.server.tls $service -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -81,42 +82,6 @@ spec:
           image: "{{ $.Values.server.image.repository }}:{{ $.Values.server.image.tag }}"
           imagePullPolicy: {{ $.Values.server.image.pullPolicy }}
           env:
-            - name: TEMPORAL_TLS_SERVER_CA_CERT
-              value: /etc/temporal/config/certs/ca.cert
-
-            - name: TEMPORAL_TLS_SERVER_CERT
-              value: /etc/temporal/config/certs/cluster.pem
-
-            - name: TEMPORAL_TLS_SERVER_KEY
-              value: /etc/temporal/config/certs/cluster.key
-
-            - name: TEMPORAL_TLS_REQUIRE_CLIENT_AUTH
-              value: "true"
-            
-            - name: TEMPORAL_TLS_FRONTEND_CERT
-              value: /etc/temporal/config/certs/cluster.pem
-
-            - name: TEMPORAL_TLS_FRONTEND_KEY
-              value: /etc/temporal/config/certs/cluster.key
-            
-            - name: TEMPORAL_TLS_CLIENT1_CA_CERT
-              value: /etc/temporal/config/certs/ca.cert
-
-            - name: TEMPORAL_TLS_CLIENT2_CA_CERT
-              value: /etc/temporal/config/certs/ca.cert
-
-            - name: TEMPORAL_TLS_INTERNODE_SERVER_NAME
-              value: steampipe-temporal
-
-            - name: TEMPORAL_TLS_FRONTEND_SERVER_NAME
-              value: steampipe-temporal
-            
-            - name: TEMPORAL_TLS_FRONTEND_DISABLE_HOST_VERIFICATION
-              value: "false"
-
-            - name: TEMPORAL_TLS_INTERNODE_DISABLE_HOST_VERIFICATION
-              value: "false"
-
             - name: POD_IP
               valueFrom:
                 fieldRef:
@@ -167,8 +132,10 @@ spec:
                port: rpc
           {{- end }}
           volumeMounts:
+            {{- if $serviceTlsValues.secret }}
             - name: certs
-              mountPath: /etc/temporal/config/certs
+              mountPath: {{ $serviceTlsValues.mountPath }}
+            {{- end}}
 
             - name: config
               mountPath: /etc/temporal/config/config_template.yaml
@@ -189,9 +156,11 @@ spec:
       {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        {{- if $serviceTlsValues.secret }}
         - name: certs
           secret:
-            secretName: temporal-certs
+            secretName: {{ $serviceTlsValues.secret }}
+        {{- end}}
         - name: config
           configMap:
             name: "{{ include "temporal.componentname" (list $ $service) }}-config"

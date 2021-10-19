@@ -48,39 +48,45 @@ spec:
           env:
             - name: TEMPORAL_ADDRESS
               value: "{{ include "temporal.fullname" . }}-frontend.{{ .Release.Namespace }}.svc:{{ .Values.server.frontend.service.port }}"
-
+            {{- if $.Values.web.tls}}
             - name: TEMPORAL_TLS_KEY_PATH
-              value: /etc/temporal/config/certs/cluster.key
+              value: {{ $.Values.web.tls.tlsKeyPath }}
             
             - name: TEMPORAL_TLS_CERT_PATH
-              value: /etc/temporal/config/certs/cluster.pem
+              value: {{ $.Values.web.tls.tlsCertPath }}
             
             - name: TEMPORAL_TLS_CA_PATH
-              value: /etc/temporal/config/certs/ca.cert
+              value: {{ $.Values.web.tls.tlsCaPath }}
             
             - name: TEMPORAL_TLS_SERVER_NAME
-              value: steampipe-temporal
+              value: {{ $.Values.web.tls.tlsServerName }}
             
             - name: TEMPORAL_TLS_ENABLE_HOST_VERIFICATION
-              value: "false"
+              value: {{ $.Values.web.tls.tlsEnableHostVerification | quote }}
+            {{- end }}
 
           ports:
             - name: http
               containerPort: 8080
               protocol: TCP
+          {{- if $.Values.web.tls}}
           volumeMounts:
             - name: certs
-              mountPath: /etc/temporal/config/certs              
+              mountPath: {{ $.Values.web.tls.mountPath }}
+          {{- end }}
           resources:
             {{- toYaml .Values.web.resources | nindent 12 }}
       {{- with .Values.web.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if $.Values.web.tls}}
       volumes:
         - name: certs
           secret:
-            secretName: temporal-certs      
+            secretName: {{ $.Values.web.tls.secret }}
+      {{- end }}
+
     {{- with .Values.web.affinity }}
       affinity:
       {{- toYaml . | nindent 8 }}

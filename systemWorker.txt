@@ -1,7 +1,0 @@
-        systemWorker:
-          certFile: /etc/temporal/config/certs/cluster.pem
-          keyFile: /etc/temporal/config/certs/cluster.key
-          client:
-            serverName: steampipe-temporal
-            rootCaFiles:
-              - /etc/temporal/config/certs/ca.cert
