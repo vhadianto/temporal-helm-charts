@@ -46,28 +46,47 @@ spec:
           image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
           imagePullPolicy: {{ .Values.web.image.pullPolicy }}
           env:
+            {{ if eq .Values.web.image.repository "temporalio/web" }}
+            - name: TEMPORAL_GRPC_ENDPOINT
+              value: "{{ include "temporal.fullname" . }}-frontend.{{ .Release.Namespace }}.svc:{{ .Values.server.frontend.service.port }}"
+            {{ end }}
+            {{ if eq .Values.web.image.repository "temporalio/ui" }}
             - name: TEMPORAL_ADDRESS
               value: "{{ include "temporal.fullname" . }}-frontend.{{ .Release.Namespace }}.svc:{{ .Values.server.frontend.service.port }}"
+            {{ end }}
+
             {{- if $.Values.web.tls}}
             - name: TEMPORAL_TLS_KEY_PATH
               value: {{ $.Values.web.tls.tlsKeyPath }}
-            
+
             - name: TEMPORAL_TLS_CERT_PATH
               value: {{ $.Values.web.tls.tlsCertPath }}
-            
+
             - name: TEMPORAL_TLS_CA_PATH
               value: {{ $.Values.web.tls.tlsCaPath }}
-            
+
             - name: TEMPORAL_TLS_SERVER_NAME
               value: {{ $.Values.web.tls.tlsServerName }}
-            
+
             - name: TEMPORAL_TLS_ENABLE_HOST_VERIFICATION
               value: {{ $.Values.web.tls.tlsEnableHostVerification | quote }}
             {{- end }}
 
+          {{ if eq $.Values.web.image.repository "temporalio/web" }}
+          volumeMounts:
+            - name: {{ .Chart.Name }}-web-config
+              mountPath: /usr/app/server/config.yml
+              subPath: config.yml
+          {{ end }}
+
           ports:
             - name: http
+              {{ if eq $.Values.web.image.repository "temporalio/web" }}
+              containerPort: 8088
+              {{ end }}
+              {{ if eq $.Values.web.image.repository "temporalio/ui" }}
               containerPort: 8080
+              {{ end }}
               protocol: TCP
           {{- if $.Values.web.tls}}
           volumeMounts:
