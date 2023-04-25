@@ -58,6 +58,9 @@ spec:
             - name: TEMPORAL_TLS_ENABLE_HOST_VERIFICATION
               value: {{ $.Values.web.tls.tlsEnableHostVerification | quote }}
             {{- end }}
+          {{- if .Values.web.additionalEnv }}
+          {{- toYaml .Values.web.additionalEnv | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: 8080
