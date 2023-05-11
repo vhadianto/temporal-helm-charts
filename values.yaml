@@ -238,7 +238,7 @@ admintools:
   enabled: true
   image:
     repository: temporalio/admin-tools
-    tag: 1.18.0
+    tag: 1.19.1
     pullPolicy: IfNotPresent
 
   service:
@@ -266,7 +266,7 @@ web:
 
   image:
     repository: temporalio/ui
-    tag: latest
+    tag: 2.9.0
     pullPolicy: IfNotPresent
 
   service:
