@@ -67,6 +67,8 @@ spec:
                 - /
               initialDelaySeconds: 5
               periodSeconds: 5
+          resources:
+            {{- toYaml $.Values.admintools.resources | nindent 12 }}
           {{- if $.Values.admintools.tls }}
           volumeMounts:
             - name: certs
