@@ -181,6 +181,13 @@ data:
         {{- end }}
       {{- end }}
 
+      {{- if $.Values.server.config.tls }}
+      tls:
+        {{- with $.Values.server.config.tls }}
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
+      {{- end }}
+
     services:
       frontend:
         rpc:
