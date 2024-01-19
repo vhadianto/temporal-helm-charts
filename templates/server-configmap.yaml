@@ -150,6 +150,7 @@ data:
               {{- end }}
           {{- end }}
         {{- end }}
+      {{- end }}
 
         {{ if $.Values.server.config.global.tls.frontend }}
         frontend:
