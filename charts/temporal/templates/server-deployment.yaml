@@ -137,6 +137,11 @@ spec:
                port: rpc
           {{- end }}
           volumeMounts:
+            {{- if $serviceTlsValues.secret }}
+            - name: certs
+              mountPath: {{ $serviceTlsValues.mountPath }}
+            {{- end}}
+
             - name: config
               mountPath: /etc/temporal/config/config_template.yaml
               subPath: config_template.yaml
@@ -156,6 +161,11 @@ spec:
       {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        {{- if $serviceTlsValues.secret }}
+        - name: certs
+          secret:
+            secretName: {{ $serviceTlsValues.secret }}
+        {{- end}}
         - name: config
           configMap:
             name: "{{ include "temporal.fullname" $ }}-config"
