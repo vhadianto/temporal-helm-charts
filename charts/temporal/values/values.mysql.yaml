@@ -1,5 +1,9 @@
 server:
+
   config:
+    tls:
+      certDir: /etc/temporal/config/certs
+
     persistence:
       default:
         driver: "sql"
@@ -26,6 +30,17 @@ server:
           password: _PASSWORD_
           maxConns: 20
           maxConnLifetime: "1h"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+      
+  frontend:
+    replicaCount: 1
+
+  worker:
+    replicaCount: 1
 
 cassandra:
   enabled: false
